@@ -1,10 +1,14 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenerativeAI, type EmbedContentRequest } from "@google/generative-ai"
 import {Document} from '@langchain/core/documents'
+
+export const CHAT_MODEL = 'gemini-3.7-flash'
+export const EMBEDDING_MODEL = 'gemini-embedding-2'
+export const EMBEDDING_DIMENSIONS = 768
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash'
+    model: CHAT_MODEL
 })
 
 export const AIsummariseCommit = async(diff:string)=>{
@@ -71,6 +75,7 @@ export async function summariseCode(doc : Document){
         
         return response.response.text();
     }catch(e){
+        console.error("failed to summarise: ", doc.metadata.source, e)
         return ''
     }
 
@@ -80,10 +85,15 @@ export async function summariseCode(doc : Document){
 
 export async function generateEmbedding(summary:string){
     const model = genAI.getGenerativeModel({
-        model:'text-embedding-004'
+        model: EMBEDDING_MODEL
     })
 
-    const result = await model.embedContent(summary)
+    // The SDK is EOL and its EmbedContentRequest type predates outputDimensionality,
+    // but it forwards unknown fields verbatim, so the cast is safe at runtime.
+    const result = await model.embedContent({
+        content: { role: 'user', parts: [{ text: summary }] },
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+    } as EmbedContentRequest)
     const embedding = result.embedding
 
     return embedding.values

@@ -119,6 +119,11 @@ const generateEmbeddings = async(docs:Document[])=>{
         
         const summary = await summariseCode(doc)
 
+        if(!summary){
+            console.error("skipping file with no summary: ", doc.metadata.source)
+            return null
+        }
+
         const embedding  = await generateEmbedding(summary)
         return {
             summary,

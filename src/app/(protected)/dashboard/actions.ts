@@ -2,7 +2,7 @@
 import {streamText} from "ai"
 import {createStreamableValue} from "ai/rsc"
 import {createGoogleGenerativeAI} from '@ai-sdk/google'
-import { generateEmbedding } from "~/lib/gemini"
+import { CHAT_MODEL, generateEmbedding } from "~/lib/gemini"
 import { db } from "~/server/db"
 
 const google = createGoogleGenerativeAI({
@@ -40,7 +40,7 @@ export async function askQuestion(question : string, projectId: string){
 
     (async()=>{
         const {textStream} = await streamText({
-            model:google('gemini-1.5-flash'),
+            model:google(CHAT_MODEL),
             prompt:`
             You are a ai code assistant who answers questions about the codebase. 
             Your target audience is a technical intern who is looking to understand the codebase.
